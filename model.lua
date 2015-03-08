@@ -18,6 +18,7 @@ trsize = 500
 loaded = torch.rand(500,517,1600)
 trainData = {
    --labels = loaded.y[1],
+   data = loaded
    labels = torch.ones(500),
    size = function() return trsize end
 }
