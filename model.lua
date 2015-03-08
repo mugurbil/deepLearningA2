@@ -15,10 +15,10 @@ require 'optim'
 save = 'results'
 trsize = 500
 -- data = torch.load(train_file, 'ascii')
-loaded = torch.rand(500,517,1600)
+loaded = torch.Tensor(500,517,1600)
 trainData = {
    --labels = loaded.y[1],
-   data = loaded
+   data = loaded,
    labels = torch.ones(500),
    size = function() return trsize end
 }
@@ -99,111 +99,127 @@ optimState = {
 optimMethod = optim.sgd
 
 ----------------------------------------------------------------------
-print '==> defining training procedure'
-
-function train()
-
-   -- epoch tracker
-   epoch = epoch or 1
-
-   -- local vars
-   local time = sys.clock()
-
-   -- set model to training mode (for modules that differ in training and testing, like Dropout)
-   model:training()
-
-   -- shuffle at each epoch
-   shuffle = torch.randperm(trsize)
-
-   -- do one epoch
-   print('==> doing epoch on training data:')
-   print("==> online epoch # " .. epoch .. ' [batchSize = ' .. 128 .. ']')
-   for t = 1,trainData:size(),128 do
-      -- disp progress
-      xlua.progress(t, trainData:size())
-
-      -- create mini batch
-      local inputs = {}
-      local targets = {}
-      for i = t,math.min(t+128-1,trainData:size()) do
-         -- load new sample
-         local input = trainData.data[shuffle[i]]
-         local target = trainData.labels[shuffle[i]]
-         input = input:cuda()
-         table.insert(inputs, input)
-         table.insert(targets, target)
-      end
-
-      -- create closure to evaluate f(X) and df/dX
-      local feval = function(x)
-                       -- get new parameters
-                       if x ~= parameters then
-                          parameters:copy(x)
-                       end
-
-                       -- reset gradients
-                       gradParameters:zero()
-
-                       -- f is the average of all criterions
-                       local f = 0
-
-                       -- evaluate function for complete mini batch
-                       for i = 1,#inputs do
-                          -- estimate f
-                          local output = model:forward(inputs[i])
-                          local err = criterion:forward(output, targets[i])
-                          f = f + err
-
-                          -- estimate df/dW
-                          local df_do = criterion:backward(output, targets[i])
-                          model:backward(inputs[i], df_do)
-
-                          -- update confusion
-                          confusion:add(output, targets[i])
-                       end
-
-                       -- normalize gradients and f(X)
-                       gradParameters:div(#inputs)
-                       f = f/#inputs
-
-                       -- return f and df/dX
-                       return f,gradParameters
-                    end
-
-      -- optimize on current mini-batch
-      optimMethod(feval, parameters, optimState)
-      
-   end
-
-   -- time taken
-   time = sys.clock() - time
-   time = time / trainData:size()
-   print("\n==> time to learn 1 sample = " .. (time*1000) .. 'ms')
-
-   -- print confusion matrix
-   print(confusion)
-
-   -- update logger/plot
-   trainLogger:add{['% mean class accuracy (train set)'] = confusion.totalValid * 100}
-
-   -- save/log current net
-   local filename = paths.concat(saveFile, 'model.net')
-   os.execute('mkdir -p ' .. sys.dirname(filename))
-   print('==> saving model to '..filename)
-   torch.save(filename, model)
-
-   -- next epoch
-   confusion:zero()
-   epoch = epoch + 1
-end
-----------------------------------------------------------------------
 
 require 'cunn'
 torch.setdefaulttensortype('torch.FloatTensor')
 torch.setnumthreads(2)
 torch.manualSeed(1)
 
-for i = 1,1 do
-	train()
-end
+trainer = nn.StochasticGradient(model, criterion)
+trainer.learningRate = 0.01
+trainer.learningRateDecay = 1e-7
+trainer.momentum = 0.9
+
+trainer:train(trainData)
+
+----------------------------------------------------------------------
+
+
+-- print '==> defining training procedure'
+
+-- function train()
+
+--    -- epoch tracker
+--    epoch = epoch or 1
+
+--    -- local vars
+--    local time = sys.clock()
+
+--    -- set model to training mode (for modules that differ in training and testing, like Dropout)
+--    model:training()
+
+--    -- shuffle at each epoch
+--    shuffle = torch.randperm(trsize)
+
+--    -- do one epoch
+--    print('==> doing epoch on training data:')
+--    print("==> online epoch # " .. epoch .. ' [batchSize = ' .. 128 .. ']')
+--    for t = 1,trainData:size(),128 do
+--       -- disp progress
+--       xlua.progress(t, trainData:size())
+
+--       -- create mini batch
+--       local inputs = {}
+--       local targets = {}
+--       for i = t,math.min(t+128-1,trainData:size()) do
+--          -- load new sample
+--          local input = trainData.data[shuffle[i]]
+--          local target = trainData.labels[shuffle[i]]
+--          input = input:double()
+--          table.insert(inputs, input)
+--          table.insert(targets, target)
+--       end
+
+--       -- create closure to evaluate f(X) and df/dX
+--       local feval = function(x)
+--                        -- get new parameters
+--                        if x ~= parameters then
+--                           parameters:copy(x)
+--                        end
+
+--                        -- reset gradients
+--                        gradParameters:zero()
+
+--                        -- f is the average of all criterions
+--                        local f = 0
+
+--                        -- evaluate function for complete mini batch
+--                        for i = 1,#inputs do
+--                           -- estimate f
+--                           local output = model:forward(inputs[i])
+--                           local err = criterion:forward(output, targets[i])
+--                           f = f + err
+
+--                           -- estimate df/dW
+--                           local df_do = criterion:backward(output, targets[i])
+--                           model:backward(inputs[i], df_do)
+
+--                           -- update confusion
+--                           confusion:add(output, targets[i])
+--                        end
+
+--                        -- normalize gradients and f(X)
+--                        gradParameters:div(#inputs)
+--                        f = f/#inputs
+
+--                        -- return f and df/dX
+--                        return f,gradParameters
+--                     end
+
+--       -- optimize on current mini-batch
+--       optimMethod(feval, parameters, optimState)
+      
+--    end
+
+--    -- time taken
+--    time = sys.clock() - time
+--    time = time / trainData:size()
+--    print("\n==> time to learn 1 sample = " .. (time*1000) .. 'ms')
+
+--    -- print confusion matrix
+--    print(confusion)
+
+--    -- update logger/plot
+--    trainLogger:add{['% mean class accuracy (train set)'] = confusion.totalValid * 100}
+
+--    -- save/log current net
+--    local filename = paths.concat(saveFile, 'model.net')
+--    os.execute('mkdir -p ' .. sys.dirname(filename))
+--    print('==> saving model to '..filename)
+--    torch.save(filename, model)
+
+--    -- next epoch
+--    confusion:zero()
+--    epoch = epoch + 1
+-- end
+-- ----------------------------------------------------------------------
+
+-- require 'cunn'
+-- torch.setdefaulttensortype('torch.FloatTensor')
+-- torch.setnumthreads(2)
+-- torch.manualSeed(1)
+
+-- for i = 1,1 do
+-- 	train()
+-- end
 
