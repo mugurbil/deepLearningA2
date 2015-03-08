@@ -12,7 +12,7 @@ require 'nn'      -- provides all sorts of trainable modules/layers
 -- www = 'http://cims.nyu.edu/~ml4133/'
 -- train_file = 'train_features.data'
 -- --os.execute('wget ' .. www .. train_file)
-
+save = 'results'
 trsize = 500
 -- data = torch.load(train_file, 'ascii')
 loaded = torch.rand(500,517,1600)
@@ -63,8 +63,8 @@ print(criterion)
 ----------------------------------------------------------------------
 saveFile = 'results'
 -- CUDA
-model:cuda()
-criterion:cuda()
+-- model:cuda()
+-- criterion:cuda()
 
 ----------------------------------------------------------------------
 print '==> defining some tools'
@@ -76,8 +76,8 @@ classes = {'1','2','3','4','5','6','7','8','9','0'}
 confusion = optim.ConfusionMatrix(classes)
 
 -- Log results to files
-trainLogger = optim.Logger(paths.concat(opt.save, 'train.log'))
-testLogger = optim.Logger(paths.concat(opt.save, 'test.log'))
+trainLogger = optim.Logger(paths.concat(save, 'train.log'))
+testLogger = optim.Logger(paths.concat(save, 'test.log'))
 
 -- Retrieve parameters and gradients:
 -- this extracts and flattens all the trainable parameters of the mode
