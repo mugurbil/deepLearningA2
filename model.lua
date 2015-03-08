@@ -6,7 +6,7 @@
 require 'torch'   -- torch
 require 'image'   -- for image transforms
 require 'nn'      -- provides all sorts of trainable modules/layers
-
+require 'optim'
 
 -- -- get the preprocessed data
 -- www = 'http://cims.nyu.edu/~ml4133/'
