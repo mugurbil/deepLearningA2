@@ -8,16 +8,17 @@ require 'image'   -- for image transforms
 require 'nn'      -- provides all sorts of trainable modules/layers
 
 
--- get the preprocessed data
-www = 'http://cims.nyu.edu/~ml4133/'
-train_file = 'train_features.data'
-os.execute('wget ' .. www .. train_file)
+-- -- get the preprocessed data
+-- www = 'http://cims.nyu.edu/~ml4133/'
+-- train_file = 'train_features.data'
+-- --os.execute('wget ' .. www .. train_file)
 
 trsize = 500
-data = torch.load(train_file, 'ascii')
+-- data = torch.load(train_file, 'ascii')
+loaded = torch.rand(500,517,1600)
 trainData = {
-   --data = loaded.X:transpose(3,4),
-   labels = loaded.y[1],
+   --labels = loaded.y[1],
+   labels = torch.ones(500),
    size = function() return trsize end
 }
 ----------------------------------------------------------------------
