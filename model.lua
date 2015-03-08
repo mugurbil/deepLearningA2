@@ -116,7 +116,7 @@ function train()
 
    -- do one epoch
    print('==> doing epoch on training data:')
-   print("==> online epoch # " .. epoch .. ' [batchSize = ' .. opt.batchSize .. ']')
+   print("==> online epoch # " .. epoch .. ' [batchSize = ' .. 128 .. ']')
    for t = 1,trainData:size(),128 do
       -- disp progress
       xlua.progress(t, trainData:size())
