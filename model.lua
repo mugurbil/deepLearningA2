@@ -16,16 +16,23 @@ save = 'results'
 trsize = 500
 numPatch = 517
 train_file = 'train_features.data'
-data = torch.load(train_file, 'ascii')
-labelsFile = torch.load('train_y.bin','byte')
-labels = labelsFile:type('torch.IntTensor')
+loaded = torch.load(train_file, 'ascii')
+-- labelsFile = torch.load('/scratch/courses/DSGA1008/A2/binary/train_y.bin','byte')
+
+train_labels_path = '/scratch/courses/DSGA1008/A2/binary/train_y.bin'
+print("Loading labels")
+data = torch.DiskFile(train_labels_path, 'r', true)
+data:binary():littleEndianEncoding()
+tensor = torch.ByteTensor(trsize)
+data:readByte(tensor:storage())
+labelsFile = tensor:double()
 
 -- inLabels = torch.Tensor(trsize)
 -- loaded = torch.rand(trsize,numPatch,1600)
 
 labels = torch.Tensor(numPatch,trsize):zero()
 for i = 1, numPatch do
-  labels[i] = inLabels
+  labels[i] = labelsFile
 end
 labels = labels:resize(trsize*numPatch)
 net = nn.Reshape(trsize*numPatch,1,40,40)
