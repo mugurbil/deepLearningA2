@@ -224,7 +224,35 @@ torch.setdefaulttensortype('torch.FloatTensor')
 torch.setnumthreads(2)
 torch.manualSeed(1)
 
-for i = 1,1 do
-	train()
+-- for i = 1,10 do
+-- 	train()
+-- end
+
+print("Training")
+learning_rate = .001
+decay = .0000001
+batch_size = 10
+
+epoch = 0
+
+while true do
+      epoch = epoch + 1
+      print("Epoch "..epoch)
+      processed_count = 0
+      while processed_count < train_image_count do
+            xlua.progress(processed_count, train_image_count)
+            batch_lower = processed_count + 1
+            batch_upper = math.min(train_image_count, batch_lower + batch_size -1)
+            batch = training_data[{{batch_lower, batch_upper}, {}, {}}]
+            batch_labels = labels[{{batch_lower, batch_upper}}]:double()
+            criterion:forward(net:forward(batch), batch_labels)
+            net:zeroGradParameters()
+            net:backward(batch, criterion:backward(net.output, batch_labels))
+            net:updateParameters(learning_rate)
+            processed_count = processed_count + batch_size
+            learning_rate = learning_rate * decay
+     end
+     print("Saving Model")
+     torch.save(trained_model_path, net, 'ascii')
 end
 
