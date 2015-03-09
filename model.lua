@@ -2,7 +2,7 @@
 -- m&m : mehmet ugurbil, mark liu
 -- model for learning stl-10
 -- 3/10/2015
-
+print("Starting module.lua")
 require 'torch'   -- torch
 require 'image'   -- for image transforms
 require 'nn'      -- provides all sorts of trainable modules/layers
@@ -13,12 +13,13 @@ require 'optim'
 -- --os.execute('wget ' .. www .. train_file)
 save = 'results'
 -- getting the data and then shaping it 
+print("Loading training file")
 trsize = 500
 numPatch = 517
 train_file = 'train_features.data'
 loaded = torch.load(train_file, 'ascii')
 -- labelsFile = torch.load('/scratch/courses/DSGA1008/A2/binary/train_y.bin','byte')
-
+print("Loaded training file")
 train_labels_path = '/scratch/courses/DSGA1008/A2/binary/train_y.bin'
 print("Loading labels")
 data = torch.DiskFile(train_labels_path, 'r', true)
@@ -192,7 +193,7 @@ function train()
                     end
 
       -- optimize on current mini-batch
-      -- optimMethod(feval, parameters, optimState)
+      optimMethod(feval, parameters, optimState)
 
    end
 
