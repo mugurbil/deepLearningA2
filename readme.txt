@@ -1,0 +1,23 @@
+Deep Learning 2015 Spring A2
+M&M: Mehmet Ugurbil, Mark Liu
+
+centroid_finder -> centroids.data, feature_means.data, whitening_matrix.data
+extract_features -> train_features.data
+supervised_learning -> model.data
+classify -> ...
+
+-- Run the following pbs on mercer to generate result.csv --
+#!/bin/bash
+
+#PBS -l nodes=1:ppn=1,walltime=10:00:00
+#PBS -N classifying
+#PBS -M NETID@nyu.edu
+#PBS -m abe
+#PBS -e localhost:/scratch/NETID/${PBS_JOBNAME}.e${PBS_JOBID}
+#PBS -o localhost:/scratch/NETID/${PBS_JOBNAME}.o${PBS_JOBID}
+#PBS -l mem=40gb
+
+git clone https://github.com/markisus/Deep-Learning-Assignment-2.git m_and_m
+cd m_and_m
+/scratch/courses/DSGA1008/bin/th classify.lua -start 1 -finish 8000 -label 1 -model /scratch/ml4133/model_epoch17.data
+/scratch/courses/DSGA1008/bin/th results.lua > ../results.csv

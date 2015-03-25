@@ -16,7 +16,7 @@ save = 'results'
 print("Loading training file")
 trsize = 500
 numPatch = 517
-train_file = 'train_features.data'
+train_file = ''
 loaded = torch.load(train_file, 'ascii')
 -- labelsFile = torch.load('/scratch/courses/DSGA1008/A2/binary/train_y.bin','byte')
 print("Loaded training file")
@@ -36,10 +36,8 @@ for i = 1, numPatch do
   labels[i] = labelsFile
 end
 labels = labels:resize(trsize*numPatch)
-net = nn.Reshape(trsize*numPatch,1,40,40)
-resized = net:forward(loaded)
 trainData = {
-   data = resized,
+   data = data,
    labels = labels,
    size = function() return trsize*numPatch end
 }
@@ -103,7 +101,9 @@ testLogger = optim.Logger(paths.concat(save, 'test.log'))
 -- Retrieve parameters and gradients:
 -- this extracts and flattens all the trainable parameters of the mode
 -- into a 1-dim vector
- parameters,gradParameters = model:getParameters()
+if model then
+   parameters,gradParameters = model:getParameters()
+end
 
 ----------------------------------------------------------------------
 print '==> configuring optimizer'
@@ -222,35 +222,17 @@ torch.setdefaulttensortype('torch.FloatTensor')
 torch.setnumthreads(2)
 torch.manualSeed(1)
 
--- for i = 1,10 do
--- 	train()
--- end
-
-print("Training")
-learning_rate = .001
-decay = .0000001
-batch_size = 10
-
-epoch = 0
-
-while true do
-      epoch = epoch + 1
-      print("Epoch "..epoch)
-      processed_count = 0
-      while processed_count < train_image_count do
-            xlua.progress(processed_count, train_image_count)
-            batch_lower = processed_count + 1
-            batch_upper = math.min(train_image_count, batch_lower + batch_size -1)
-            batch = training_data[{{batch_lower, batch_upper}, {}, {}}]
-            batch_labels = labels[{{batch_lower, batch_upper}}]:double()
-            criterion:forward(net:forward(batch), batch_labels)
-            net:zeroGradParameters()
-            net:backward(batch, criterion:backward(net.output, batch_labels))
-            net:updateParameters(learning_rate)
-            processed_count = processed_count + batch_size
-            learning_rate = learning_rate * decay
-     end
-     print("Saving Model")
-     torch.save(trained_model_path, net, 'ascii')
+for i = 1,10 do
+	train()
 end
 
+optimState = {
+  learningRate = 0.001,
+  weightDecay = 0.0,
+  momentum = 0.9,
+  learningRateDecay = 1e-7
+}
+
+for i = 1,10 do 
+  train()
+end
