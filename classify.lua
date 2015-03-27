@@ -25,7 +25,6 @@ print("Classifying")
 guesses = torch.IntTensor(test_image_count)
 
 for i = params.start, params.finish do
-    xlua.progress(i, test_image_count)
     image = test_data[i]
     patches = patchify(image)
     features = extract_features(patches)
