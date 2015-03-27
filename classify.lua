@@ -24,12 +24,8 @@ net = torch.load(params.model, 'ascii')
 print("Classifying")
 guesses = torch.IntTensor(test_image_count)
 
-<<<<<<< HEAD
-for i = 1, test_image_count do
-=======
 for i = params.start, params.finish do
     xlua.progress(i, test_image_count)
->>>>>>> 9d4072f342acb73fbd5b8daede2b5b2040a2bc19
     image = test_data[i]
     patches = patchify(image)
     features = extract_features(patches)
